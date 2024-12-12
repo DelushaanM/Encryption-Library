@@ -1,5 +1,3 @@
-Here's a `README.md` file for your GitHub repository:
-
 ```markdown
 # SecureLibrary
 
@@ -82,8 +80,3 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 Thanks to the open-source community for providing valuable resources on AES encryption and secure coding practices.
 ```
-
-### Next Steps
-- Add this file to the root of your GitHub repository.
-- Make sure the `LICENSE` file is present in your repository.
-- Update the NuGet version in the `README` if you publish updates.
