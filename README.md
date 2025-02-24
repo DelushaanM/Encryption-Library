@@ -1,82 +1,52 @@
-```markdown
-# SecureLibrary
+# AES-256 Encryption Library
 
-SecureLibrary is a lightweight and easy-to-use .NET library for AES encryption and decryption. It allows you to securely encrypt and decrypt text values using a password-based approach, ensuring your data remains protected.
+## 📌 Overview
+This library provides AES-256 encryption and decryption functionalities using a password-based key derivation mechanism. It ensures secure data encryption using industry best practices like PBKDF2 key derivation and CBC mode with proper padding.
 
-## Features
+## 📂 Data Structure
+- **Key Size:** 256 bits
+- **Salt Size:** 128 bits
+- **IV Size:** 128 bits
+- **Iterations:** 100,000 (PBKDF2)
+- **Cipher Mode:** CBC (Cipher Block Chaining)
+- **Padding Mode:** PKCS7
 
-- **Strong AES Encryption:** Uses the Advanced Encryption Standard (AES) to secure your data.
-- **Password Protection:** Encrypt and decrypt text with a user-provided password.
-- **Random Initialization Vector (IV):** Generates a new IV for every encryption operation for enhanced security.
-- **Simple API:** Easy-to-use methods for encryption and decryption.
-- **Compatible:** Targets `.NET Standard 2.0`, making it usable across a wide range of .NET platforms.
-
-## Benefits
-
-- **Data Security:** Ensure sensitive information is encrypted with industry-standard AES encryption.
-- **Ease of Use:** Simple API allows for quick integration into your applications.
-- **Cross-Platform Support:** Works seamlessly across different .NET environments.
-- **Reusable:** Implement encryption and decryption logic consistently across projects.
-
-## Installation
-
-To use SecureLibrary in your project, add the NuGet package:
-
-```bash
-dotnet add package SecureLibrary
-```
-
-Alternatively, download the `.nupkg` file from the releases section and add it to your local NuGet source.
-
-## Usage
-
-### Encrypt a Text Value
-
+## 🚀 Usage
+### Encryption
 ```csharp
-using SecureLibrary;
-
-string password = "StrongPassword123!";
-string plainText = "This is a secret message.";
-
-string encryptedText = Encryptor.Encrypt(plainText, password);
-Console.WriteLine($"Encrypted Text: {encryptedText}");
+string encryptedText = Encryptor.Encrypt("Your Secret Data", "StrongPassword");
+Console.WriteLine(encryptedText);
 ```
 
-### Decrypt a Text Value
-
+### Decryption
 ```csharp
-string decryptedText = Encryptor.Decrypt(encryptedText, password);
-Console.WriteLine($"Decrypted Text: {decryptedText}");
+string decryptedText = Encryptor.Decrypt(encryptedText, "StrongPassword");
+Console.WriteLine(decryptedText);
 ```
 
-### Output Example
+## 🔍 How It Works
+1. **Key Derivation:** The password is processed using PBKDF2 to generate a strong 256-bit key.
+2. **Salt Generation:** A random salt is generated for each encryption to prevent dictionary attacks.
+3. **IV Generation:** A new Initialization Vector (IV) is created to ensure different ciphertexts for the same plaintext.
+4. **AES Encryption:** The plaintext is encrypted using AES-256 in CBC mode with PKCS7 padding.
+5. **Storage:** The salt, IV, and encrypted data are combined and stored securely.
+6. **Decryption Process:** The salt and IV are extracted, the key is rederived using PBKDF2, and AES-256 decrypts the ciphertext back to plaintext.
 
-```
-Encrypted Text: /m3Nt5xP6JwrD0iTnzgfGQ==
-Decrypted Text: This is a secret message.
-```
+## ✅ Advantages
+- **Strong Security:** Uses AES-256, the highest standard in symmetric encryption.
+- **Password-Based Key Derivation:** PBKDF2 makes brute-force attacks highly difficult.
+- **Random Salt & IV:** Ensures unique encryption outputs for identical inputs.
+- **Integrity Protection:** Prevents common vulnerabilities like key reuse.
+- **Ease of Use:** Simple API for encrypting and decrypting data.
 
-## How It Works
+## 🔒 Best Practices
+- Always use a **strong, unique password** for encryption.
+- Do not hardcode passwords in your application; use a **secure vault**.
+- Store the encrypted data securely, preferably in a **protected database**.
+- Regularly **rotate passwords** to maintain security.
+- Use **HMAC authentication** for additional integrity verification if required.
+- Implement **secure key management practices** to avoid unauthorized access.
 
-1. **Encryption:**
-   - Converts the password into a cryptographic key using SHA256.
-   - Encrypts the input text using AES encryption with the generated key and a random IV.
-   - Prepends the IV to the encrypted data for use during decryption.
+## 📜 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-2. **Decryption:**
-   - Extracts the IV from the encrypted data.
-   - Recreates the cryptographic key using the password.
-   - Decrypts the encrypted data using the recreated key and the extracted IV.
-
-## Contributing
-
-Contributions are welcome! If you have suggestions or find a bug, feel free to open an issue or create a pull request.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Acknowledgements
-
-Thanks to the open-source community for providing valuable resources on AES encryption and secure coding practices.
-```
