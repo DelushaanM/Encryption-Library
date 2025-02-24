@@ -7,21 +7,31 @@ namespace SecureLibrary
 {
     public class Encryptor
     {
-        // Method to encrypt a value using AES and a password
+        private const int KeySize = 32; // 256 bits
+        private const int SaltSize = 16; // 128 bits
+        private const int IvSize = 16; // 128 bits
+        private const int Iterations = 100000; // PBKDF2 iterations
+
         public static string Encrypt(string plainText, string password)
         {
             using (var aes = Aes.Create())
             {
-                var key = GenerateKey(password, aes.KeySize / 8);
-                aes.Key = key;
-                aes.GenerateIV(); // Generate a random Initialization Vector (IV)
+                aes.KeySize = 256;
+                aes.BlockSize = 128;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
 
-                using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                var salt = GenerateRandomBytes(SaltSize);
+                var iv = GenerateRandomBytes(IvSize);
+                aes.Key = DeriveKeyFromPassword(password, salt);
+                aes.IV = iv;
+
                 using (var ms = new MemoryStream())
                 {
-                    // Write IV at the beginning for decryption
-                    ms.Write(aes.IV, 0, aes.IV.Length);
+                    ms.Write(salt, 0, salt.Length);
+                    ms.Write(iv, 0, iv.Length);
 
+                    using (var encryptor = aes.CreateEncryptor())
                     using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
                     using (var writer = new StreamWriter(cs))
                     {
@@ -33,24 +43,28 @@ namespace SecureLibrary
             }
         }
 
-        // Method to decrypt a value using AES and a password
         public static string Decrypt(string encryptedText, string password)
         {
             var encryptedBytes = Convert.FromBase64String(encryptedText);
 
             using (var aes = Aes.Create())
             {
-                var key = GenerateKey(password, aes.KeySize / 8);
-                aes.Key = key;
+                aes.KeySize = 256;
+                aes.BlockSize = 128;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
 
                 using (var ms = new MemoryStream(encryptedBytes))
                 {
-                    // Read the IV from the stream
-                    var iv = new byte[aes.BlockSize / 8];
-                    ms.Read(iv, 0, iv.Length);
+                    var salt = new byte[SaltSize];
+                    ms.Read(salt, 0, SaltSize);
+                    var iv = new byte[IvSize];
+                    ms.Read(iv, 0, IvSize);
+
+                    aes.Key = DeriveKeyFromPassword(password, salt);
                     aes.IV = iv;
 
-                    using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                    using (var decryptor = aes.CreateDecryptor())
                     using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
                     using (var reader = new StreamReader(cs))
                     {
@@ -60,20 +74,22 @@ namespace SecureLibrary
             }
         }
 
-        // Helper method to generate a key from the password
-        private static byte[] GenerateKey(string password, int keySize)
+        private static byte[] DeriveKeyFromPassword(string password, byte[] salt)
         {
-            using (var sha256 = SHA256.Create())
+            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256))
             {
-                var passwordBytes = Encoding.UTF8.GetBytes(password);
-                var hash = sha256.ComputeHash(passwordBytes);
-
-                // Ensure the key size matches the AES key size
-                var key = new byte[keySize];
-                Array.Copy(hash, key, keySize);
-
-                return key;
+                return pbkdf2.GetBytes(KeySize);
             }
+        }
+
+        private static byte[] GenerateRandomBytes(int size)
+        {
+            var randomBytes = new byte[size];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+            return randomBytes;
         }
     }
 }
